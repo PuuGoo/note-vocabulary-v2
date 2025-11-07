@@ -7,13 +7,14 @@
   "scripts": {
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
+    "build": "prisma generate",
+    "postinstall": "prisma generate",
     "prisma:generate": "prisma generate",
     "prisma:push": "prisma db push",
     "prisma:studio": "prisma studio",
     "test": "jest --coverage",
     "test:watch": "jest --watch",
     "lint": "eslint src/**/*.js",
-    "build": "echo 'Build complete'",
     "docker:build": "docker build -t vocapro .",
     "docker:up": "docker-compose up -d"
   },
