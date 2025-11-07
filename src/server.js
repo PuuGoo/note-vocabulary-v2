@@ -137,12 +137,14 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 3000;
 const HOST = process.env.HOST || 'localhost';
-
-app.listen(PORT, () => {
-  logger.info(`🚀 VocaPro server running at http://${HOST}:${PORT}`);
-  logger.info(`📚 API Documentation: http://${HOST}:${PORT}/api-docs`);
-  logger.info(`🔐 Environment: ${process.env.NODE_ENV || 'development'}`);
-});
+// Start server (skip in serverless environment like Vercel)
+if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+  app.listen(PORT, () => {
+    logger.info(`🚀 VocaPro server running at http://${HOST}:${PORT}`);
+    logger.info(`📚 API Documentation: http://${HOST}:${PORT}/api-docs`);
+    logger.info(`🔐 Environment: ${process.env.NODE_ENV || 'development'}`);
+  });
+}
 
 // Graceful shutdown
 process.on('SIGTERM', async () => {
@@ -151,4 +153,5 @@ process.on('SIGTERM', async () => {
   process.exit(0);
 });
 
+// Export for Vercel serverless
 module.exports = app;

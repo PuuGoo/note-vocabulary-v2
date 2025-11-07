@@ -430,7 +430,69 @@ az webapp deploy --resource-group vocapro-rg --name vocapro-app --src-path . --t
 
 ---
 
-## 🐳 Docker Deployment
+## � Deployment to Vercel
+
+### Prerequisites
+
+- Vercel account (free tier available)
+- Vercel CLI installed: `npm install -g vercel`
+
+### Step 1: Install Vercel CLI
+
+```bash
+npm install -g vercel
+```
+
+### Step 2: Login to Vercel
+
+```bash
+vercel login
+```
+
+### Step 3: Deploy
+
+```bash
+# Deploy to preview
+vercel
+
+# Deploy to production
+vercel --prod
+```
+
+### Step 4: Configure Environment Variables
+
+In Vercel dashboard or via CLI:
+
+```bash
+vercel env add DATABASE_URL
+vercel env add SESSION_SECRET
+vercel env add GOOGLE_CLIENT_ID
+vercel env add GOOGLE_CLIENT_SECRET
+vercel env add RAPIDAPI_KEY
+```
+
+**Important:** Update Google OAuth redirect URI to:
+```
+https://your-app-name.vercel.app/auth/google/callback
+```
+
+### Auto-Deploy with GitHub
+
+1. Import your repository to Vercel dashboard
+2. Connect your GitHub repository
+3. Configure environment variables
+4. Every push to `main` branch will auto-deploy
+
+### Vercel Configuration
+
+The project includes `vercel.json` for deployment configuration:
+- Static files served from `/public`
+- API routes handled by Express app
+- Serverless function optimization
+
+---
+
+## �🐳 Docker Deployment
 
 ### Build Image
 
@@ -610,5 +672,6 @@ For issues, questions, or suggestions:
 ⭐ Star this repo if you find it helpful!
 
 </div>
-#   n o t e - v o c a b u l a r y - v 2  
+#   n o t e - v o c a b u l a r y - v 2 
+ 
  
