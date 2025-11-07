@@ -66,6 +66,12 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
+// Add base URL to all responses (for dynamic links in frontend)
+app.use((req, res, next) => {
+  res.locals.baseUrl = process.env.BASE_URL || `${req.protocol}://${req.get('host')}`;
+  next();
+});
+
 // Static files (frontend)
 app.use(express.static(path.join(__dirname, '../public')));
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
