@@ -1,0 +1,20 @@
+{
+  "build": {
+    "command": "npm install && npx prisma generate"
+  },
+  "services": [
+    {
+      "type": "web",
+      "name": "vocapro",
+      "env": "node",
+      "buildCommand": "npm install && npx prisma generate",
+      "startCommand": "npm start",
+      "envVars": [
+        {
+          "key": "NODE_ENV",
+          "value": "production"
+        }
+      ]
+    }
+  ]
+}
