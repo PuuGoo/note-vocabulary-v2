@@ -35,6 +35,7 @@ NODE_ENV=production
 ### Step 4: Update Google OAuth
 
 Update redirect URI to:
+
 ```
 https://vocapro.onrender.com/auth/google/callback
 ```
