@@ -1,28 +1,15 @@
 {
   "version": 2,
-  "rewrites": [
+  "builds": [
     {
-      "source": "/css/(.*)",
-      "destination": "/public/css/$1"
-    },
-    {
-      "source": "/js/(.*)",
-      "destination": "/public/js/$1"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/src/server.js"
+      "src": "api/index.js",
+      "use": "@vercel/node"
     }
   ],
-  "headers": [
+  "routes": [
     {
-      "source": "/public/(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        }
-      ]
+      "src": "/(.*)",
+      "dest": "/api/index.js"
     }
   ]
 }
