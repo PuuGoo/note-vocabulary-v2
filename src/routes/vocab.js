@@ -164,10 +164,10 @@ router.post('/', ensureAuthenticated, validate(createVocabSchema), async (req, r
     });
 
     if (existingVocab) {
-      return res.status(409).json({ 
+      return res.status(409).json({
         error: 'Duplicate vocabulary',
         message: `The word "${vocabData.word}" already exists in your ${vocabData.language} vocabulary.`,
-        existingId: existingVocab.id
+        existingId: existingVocab.id,
       });
     }
 

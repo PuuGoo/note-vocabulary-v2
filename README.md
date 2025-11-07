@@ -472,6 +472,7 @@ vercel env add RAPIDAPI_KEY
 ```
 
 **Important:** Update Google OAuth redirect URI to:
+
 ```
 https://your-app-name.vercel.app/auth/google/callback
 ```
@@ -486,6 +487,7 @@ https://your-app-name.vercel.app/auth/google/callback
 ### Vercel Configuration
 
 The project includes `vercel.json` for deployment configuration:
+
 - Static files served from `/public`
 - API routes handled by Express app
 - Serverless function optimization

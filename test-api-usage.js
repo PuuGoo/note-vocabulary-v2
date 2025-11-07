@@ -14,7 +14,7 @@ async function checkApiUsage() {
     const utcTime = now.getTime();
     const vietnamOffset = 7 * 60 * 60 * 1000; // GMT+7 in milliseconds
     const vietnamTime = new Date(utcTime + vietnamOffset);
-    
+
     // Get date string and create Date object at midnight UTC
     const year = vietnamTime.getUTCFullYear();
     const month = String(vietnamTime.getUTCMonth() + 1).padStart(2, '0');
@@ -22,7 +22,9 @@ async function checkApiUsage() {
     const dateString = `${year}-${month}-${day}`;
     const today = new Date(dateString + 'T00:00:00.000Z');
 
-    console.log(`🕐 Vietnam Time: ${vietnamTime.toISOString().replace('T', ' ').substring(0, 19)} GMT+7`);
+    console.log(
+      `🕐 Vietnam Time: ${vietnamTime.toISOString().replace('T', ' ').substring(0, 19)} GMT+7`
+    );
     console.log(`📅 Checking for date: ${dateString}\n`);
 
     const usageRecords = await prisma.apiUsage.findMany({

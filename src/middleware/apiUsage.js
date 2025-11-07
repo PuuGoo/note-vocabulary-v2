@@ -20,7 +20,7 @@ function trackApiUsage(service, dailyLimit = 2000) {
       const utcTime = now.getTime();
       const vietnamOffset = 7 * 60 * 60 * 1000; // GMT+7 in milliseconds
       const vietnamTime = new Date(utcTime + vietnamOffset);
-      
+
       // Get date string and create Date object at midnight UTC
       const year = vietnamTime.getUTCFullYear();
       const month = String(vietnamTime.getUTCMonth() + 1).padStart(2, '0');
@@ -125,7 +125,7 @@ async function getApiUsageStats(service = null) {
   const utcTime = now.getTime();
   const vietnamOffset = 7 * 60 * 60 * 1000; // GMT+7 in milliseconds
   const vietnamTime = new Date(utcTime + vietnamOffset);
-  
+
   // Get date string and create Date object at midnight UTC
   const year = vietnamTime.getUTCFullYear();
   const month = String(vietnamTime.getUTCMonth() + 1).padStart(2, '0');
