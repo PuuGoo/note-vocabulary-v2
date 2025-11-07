@@ -13,21 +13,30 @@ const logFormat = winston.format.combine(
   })
 );
 
-const logger = winston.createLogger({
-  level: process.env.LOG_LEVEL || 'info',
-  format: logFormat,
-  transports: [
-    new winston.transports.Console({
-      format: winston.format.combine(winston.format.colorize(), logFormat),
-    }),
+// Configure transports based on environment
+const transports = [
+  new winston.transports.Console({
+    format: winston.format.combine(winston.format.colorize(), logFormat),
+  })
+];
+
+// Only add file transports in non-serverless environment
+if (process.env.VERCEL !== '1' && process.env.NODE_ENV !== 'production') {
+  transports.push(
     new winston.transports.File({
       filename: path.join(__dirname, '../../logs/error.log'),
       level: 'error',
     }),
     new winston.transports.File({
       filename: path.join(__dirname, '../../logs/combined.log'),
-    }),
-  ],
+    })
+  );
+}
+
+const logger = winston.createLogger({
+  level: process.env.LOG_LEVEL || 'info',
+  format: logFormat,
+  transports,
 });
 
 module.exports = logger;
