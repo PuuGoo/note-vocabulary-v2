@@ -1,0 +1,162 @@
+// =====================================================
+// VocaPro - Prisma Schema for Azure SQL Database
+// =====================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlserver"
+  url      = env("DATABASE_URL")
+}
+
+// =====================================================
+// User Model
+// =====================================================
+model User {
+  id            String       @id @default(uuid())
+  email         String       @unique
+  name          String?
+  passwordHash  String?      // null for OAuth users
+  role          String       @default("USER") // USER, TEACHER, ADMIN
+  settings      String?      @db.NVarChar(Max) // JSON string
+  googleId      String?      @unique
+  emailVerified Boolean      @default(false)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  // Relations
+  vocabularies  Vocabulary[]
+  tags          Tag[]
+  reviews       Review[]
+  sessions      Session[]
+
+  @@index([email])
+  @@map("users")
+}
+
+// =====================================================
+// Session Model (for authentication)
+// =====================================================
+model Session {
+  id        String   @id @default(uuid())
+  sid       String   @unique
+  userId    String
+  expiresAt DateTime
+  data      String   @db.NVarChar(Max) // JSON string
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+// =====================================================
+// Vocabulary Model
+// =====================================================
+model Vocabulary {
+  id           String       @id @default(uuid())
+  word         String
+  language     String       @default("en")
+  partOfSpeech String?
+  ipa          String?
+  definitions  String       @db.NVarChar(Max) // JSON array
+  examples     String?      @db.NVarChar(Max) // JSON array
+  difficulty   String       @default("MEDIUM") // EASY, MEDIUM, HARD, EXPERT
+  audioUrl     String?
+  imageUrl     String?
+  notes        String?      @db.NVarChar(Max)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  ownerId      String
+
+  // Relations
+  owner   User                @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  tags    VocabularyOnTag[]
+  reviews Review[]
+
+  @@index([ownerId])
+  @@index([word])
+  @@index([language])
+  @@map("vocabularies")
+}
+
+// =====================================================
+// Tag Model
+// =====================================================
+model Tag {
+  id          String            @id @default(uuid())
+  name        String
+  slug        String
+  color       String?
+  description String?
+  ownerId     String
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  // Relations
+  owner        User              @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  vocabularies VocabularyOnTag[]
+
+  @@unique([ownerId, slug])
+  @@index([ownerId])
+  @@map("tags")
+}
+
+// =====================================================
+// Many-to-Many Join Table
+// =====================================================
+model VocabularyOnTag {
+  vocabularyId String
+  tagId        String
+  assignedAt   DateTime @default(now())
+
+  vocabulary Vocabulary @relation(fields: [vocabularyId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  tag        Tag        @relation(fields: [tagId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([vocabularyId, tagId])
+  @@map("vocabulary_tags")
+}
+
+// =====================================================
+// Review Model (Spaced Repetition - SM-2)
+// =====================================================
+model Review {
+  id           String    @id @default(uuid())
+  vocabId      String
+  userId       String
+  efactor      Float     @default(2.5) // Easiness factor
+  interval     Int       @default(1) // Days
+  repetitions  Int       @default(0)
+  dueDate      DateTime  @default(now())
+  lastReviewed DateTime?
+  streak       Int       @default(0)
+  quality      Int?      // Last quality rating (0-5)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  // Relations
+  vocabulary Vocabulary @relation(fields: [vocabId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user       User       @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([vocabId, userId])
+  @@index([userId, dueDate])
+  @@map("reviews")
+}
+
+// =====================================================
+// API Usage Tracking
+// =====================================================
+model ApiUsage {
+  id          String   @id @default(uuid())
+  date        DateTime @default(now()) @db.Date // Only date, no time
+  service     String   // 'dictionary', 'tts', etc.
+  requestCount Int     @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([date, service])
+  @@index([date])
+  @@map("api_usage")
+}

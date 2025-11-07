@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vocabulary Manager - VocaPro</title>
+    <link rel="stylesheet" href="/css/app.css" />
+    <style>
+      .dashboard-layout {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .navbar {
+        background: var(--surface-glass);
+        backdrop-filter: var(--backdrop-blur);
+        border-bottom: 1px solid var(--border-color);
+        padding: var(--spacing-lg) var(--spacing-xl);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+      }
+
+      .navbar-brand {
+        font-size: 1.5rem;
+        font-weight: var(--font-weight-bold);
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+
+      .navbar-menu {
+        display: flex;
+        gap: var(--spacing-md);
+        align-items: center;
+      }
+
+      .nav-link {
+        color: var(--text-secondary);
+        text-decoration: none;
+        padding: 0.5rem 1rem;
+        border-radius: var(--radius-md);
+        transition: all var(--transition-fast);
+      }
+
+      .nav-link:hover {
+        color: var(--text-primary);
+        background: var(--surface-glass);
+      }
+
+      .container {
+        max-width: 1400px;
+        width: 100%;
+        margin: 0 auto;
+        padding: var(--spacing-xl);
+      }
+
+      .toolbar {
+        display: flex;
+        gap: var(--spacing-md);
+        margin-bottom: var(--spacing-xl);
+        flex-wrap: wrap;
+        align-items: center;
+      }
+
+      .search-box {
+        flex: 1;
+        min-width: 300px;
+      }
+
+      .action-icon {
+        cursor: pointer;
+        padding: 0.5rem;
+        border-radius: var(--radius-md);
+        transition: all var(--transition-fast);
+      }
+
+      .action-icon:hover {
+        background: var(--surface-glass);
+      }
+
+      .pagination {
+        display: flex;
+        gap: var(--spacing-sm);
+        justify-content: center;
+        align-items: center;
+        margin-top: var(--spacing-xl);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="dashboard-layout">
+      <!-- Navbar -->
+      <nav class="navbar">
+        <div class="navbar-brand">VocaPro</div>
+        <div class="navbar-menu">
+          <a href="/dashboard" class="nav-link">Dashboard</a>
+          <a
+            href="/vocab"
+            class="nav-link"
+            style="color: var(--text-primary); background: var(--surface-glass)"
+            >Vocabulary</a
+          >
+          <a href="/review" class="nav-link">Review</a>
+          <button class="btn btn-small" onclick="VocaPro.Theme.toggle()">🌓 Theme</button>
+          <button class="btn btn-small btn-outline" id="logoutBtn">Logout</button>
+        </div>
+      </nav>
+
+      <!-- Main Content -->
+      <div class="container">
+        <div class="flex justify-between items-center mb-lg">
+          <h1 style="font-size: 2rem">Vocabulary Manager</h1>
+          <div class="flex gap-md">
+            <button
+              class="btn btn-accent"
+              onclick="VocaPro.Modal.open('importModal'); setTimeout(initializeImport, 100)"
+            >
+              📥 Import
+            </button>
+            <button class="btn btn-primary" onclick="VocaPro.Modal.open('addVocabModal')">
+              ➕ Add Vocabulary
+            </button>
+          </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs" role="tablist">
+          <button class="tab active" data-tab="allVocab" role="tab" aria-selected="true">
+            All Vocabulary
+          </button>
+          <button class="tab" data-tab="tags" role="tab" aria-selected="false">Tags</button>
+          <button class="tab" data-tab="import" role="tab" aria-selected="false">
+            Import/Export
+          </button>
+        </div>
+
+        <div>
+          <!-- All Vocabulary Tab -->
+          <div class="tab-panel active" id="allVocab" role="tabpanel">
+            <!-- Toolbar -->
+            <div class="toolbar">
+              <div class="search-box">
+                <input type="search" id="searchInput" placeholder="Search vocabulary..." />
+              </div>
+              <select id="languageFilter">
+                <option value="">All Languages</option>
+                <option value="en">English</option>
+                <option value="vi">Vietnamese</option>
+              </select>
+              <select id="difficultyFilter">
+                <option value="">All Difficulties</option>
+                <option value="EASY">Easy</option>
+                <option value="MEDIUM">Medium</option>
+                <option value="HARD">Hard</option>
+                <option value="EXPERT">Expert</option>
+              </select>
+              <select id="tagFilter">
+                <option value="">All Tags</option>
+                <!-- Tags will be populated dynamically -->
+              </select>
+            </div>
+
+            <!-- Results Count -->
+            <p style="color: var(--text-secondary); margin-bottom: var(--spacing-md)">
+              Showing <span id="resultsCount">0</span> vocabulary items
+            </p>
+
+            <!-- Vocabulary Table -->
+            <div class="table-wrapper">
+              <table id="vocabTable">
+                <thead>
+                  <tr>
+                    <th>Word</th>
+                    <th>Pronunciation</th>
+                    <th>Language</th>
+                    <th>Part of Speech</th>
+                    <th>Definitions</th>
+                    <th>Difficulty</th>
+                    <th>Tags</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="vocabTableBody">
+                  <tr>
+                    <td colspan="8" style="text-align: center; padding: 2rem">
+                      <div class="loading-spinner" style="margin: 0 auto"></div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination">
+              <button class="btn btn-small" id="pagePrev">← Previous</button>
+              <span id="pageInfo" style="color: var(--text-secondary)">Page 1 of 1</span>
+              <button class="btn btn-small" id="pageNext">Next →</button>
+            </div>
+          </div>
+
+          <!-- Tags Tab -->
+          <div class="tab-panel" id="tags" role="tabpanel">
+            <div class="flex justify-between items-center mb-lg">
+              <p style="color: var(--text-secondary)">Manage your tags</p>
+              <button class="btn btn-primary btn-small" onclick="VocaPro.Modal.open('addTagModal')">
+                ➕ Add Tag
+              </button>
+            </div>
+            <div
+              id="tagsGrid"
+              style="
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+                gap: var(--spacing-md);
+              "
+            >
+              <div class="loading-spinner" style="margin: 2rem auto"></div>
+            </div>
+          </div>
+
+          <!-- Import/Export Tab -->
+          <div class="tab-panel" id="import" role="tabpanel">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-xl)">
+              <div class="glass-card">
+                <h2 style="margin-bottom: var(--spacing-lg)">Import Vocabulary</h2>
+                <div class="drop-zone" id="dropZoneTab">
+                  <div class="drop-zone-icon">📁</div>
+                  <div class="drop-zone-text">Drag & drop file here</div>
+                  <div class="drop-zone-hint">or click to browse (CSV or JSON)</div>
+                </div>
+                <input type="file" id="fileInputTab" accept=".csv,.json" style="display: none" />
+                <div id="progressContainer" style="margin-top: var(--spacing-lg); display: none">
+                  <div class="progress">
+                    <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+                  </div>
+                  <p
+                    style="
+                      text-align: center;
+                      margin-top: var(--spacing-sm);
+                      color: var(--text-secondary);
+                    "
+                  >
+                    Importing...
+                  </p>
+                </div>
+              </div>
+
+              <div class="glass-card">
+                <h2 style="margin-bottom: var(--spacing-lg)">Export Vocabulary</h2>
+                <p style="color: var(--text-secondary); margin-bottom: var(--spacing-lg)">
+                  Export your vocabulary for backup or use in other applications.
+                </p>
+                <div class="flex flex-col gap-md">
+                  <button class="btn btn-primary" id="exportCSV">📊 Export as CSV</button>
+                  <button class="btn btn-accent" id="exportJSON">📄 Export as JSON</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add Vocabulary Modal -->
+    <div class="modal-overlay" id="addVocabModal">
+      <div class="modal">
+        <div class="modal-header">
+          <h2 class="modal-title">Add Vocabulary</h2>
+          <button class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+          <form id="addVocabForm">
+            <div class="form-group">
+              <label for="word">Word *</label>
+              <div style="display: flex; gap: var(--spacing-sm)">
+                <input type="text" id="word" name="word" required style="flex: 1" />
+                <button
+                  type="button"
+                  class="btn btn-accent"
+                  id="lookupWord"
+                  title="Auto-fill from dictionary"
+                >
+                  🔍 Lookup
+                </button>
+              </div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-md)">
+              <div class="form-group">
+                <label for="language">Language</label>
+                <select id="language" name="language">
+                  <option value="en">English</option>
+                  <option value="vi">Vietnamese</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="difficulty">Difficulty</label>
+                <select id="difficulty" name="difficulty">
+                  <option value="EASY">Easy</option>
+                  <option value="MEDIUM" selected>Medium</option>
+                  <option value="HARD">Hard</option>
+                  <option value="EXPERT">Expert</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="partOfSpeech">Part of Speech</label>
+              <input
+                type="text"
+                id="partOfSpeech"
+                name="partOfSpeech"
+                placeholder="noun, verb, adjective..."
+              />
+            </div>
+            <div class="form-group">
+              <label for="ipa">IPA Pronunciation</label>
+              <input type="text" id="ipa" name="ipa" placeholder="/pronunciation/" />
+            </div>
+            <div class="form-group">
+              <label for="definitions">Definitions (one per line)</label>
+              <textarea id="definitions" name="definitions" rows="3"></textarea>
+            </div>
+            <div class="form-group">
+              <label for="examples">Examples (one per line)</label>
+              <textarea id="examples" name="examples" rows="3"></textarea>
+            </div>
+            <div class="form-group">
+              <label for="vocabTags">Tags (optional)</label>
+              <select id="vocabTags" name="tags" multiple style="height: 100px">
+                <!-- Tags will be loaded dynamically -->
+              </select>
+              <small style="color: var(--text-secondary); margin-top: 0.25rem; display: block"
+                >Hold Ctrl/Cmd to select multiple tags</small
+              >
+            </div>
+            <div class="form-group">
+              <label for="notes">Notes</label>
+              <textarea
+                id="notes"
+                name="notes"
+                rows="2"
+                placeholder="Additional notes..."
+              ></textarea>
+            </div>
+          </form>
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-outline" onclick="VocaPro.Modal.close('addVocabModal')">
+            Cancel
+          </button>
+          <button class="btn btn-primary" id="saveVocabBtn">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add Tag Modal -->
+    <div class="modal-overlay" id="addTagModal">
+      <div class="modal">
+        <div class="modal-header">
+          <h2 class="modal-title">Add Tag</h2>
+          <button class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+          <form id="addTagForm">
+            <div class="form-group">
+              <label for="tagName">Tag Name *</label>
+              <input type="text" id="tagName" name="name" required />
+            </div>
+            <div class="form-group">
+              <label for="tagColor">Color</label>
+              <input type="color" id="tagColor" name="color" value="#667eea" />
+            </div>
+            <div class="form-group">
+              <label for="tagDescription">Description</label>
+              <textarea id="tagDescription" name="description" rows="2"></textarea>
+            </div>
+          </form>
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-outline" onclick="VocaPro.Modal.close('addTagModal')">
+            Cancel
+          </button>
+          <button class="btn btn-primary" id="saveTagBtn">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit Vocabulary Modal -->
+    <div class="modal-overlay" id="editVocabModal">
+      <div class="modal">
+        <div class="modal-header">
+          <h2 class="modal-title">Edit Vocabulary</h2>
+          <button class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+          <form id="editVocabForm">
+            <input type="hidden" id="editVocabId" />
+            <div class="form-group">
+              <label for="editWord">Word *</label>
+              <div style="display: flex; gap: var(--spacing-sm)">
+                <input type="text" id="editWord" name="word" required style="flex: 1" />
+                <button
+                  type="button"
+                  class="btn btn-accent"
+                  id="lookupEditWord"
+                  title="Auto-fill from dictionary"
+                >
+                  🔍 Lookup
+                </button>
+              </div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-md)">
+              <div class="form-group">
+                <label for="editLanguage">Language</label>
+                <select id="editLanguage" name="language">
+                  <option value="en">English</option>
+                  <option value="vi">Vietnamese</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="editDifficulty">Difficulty</label>
+                <select id="editDifficulty" name="difficulty">
+                  <option value="EASY">Easy</option>
+                  <option value="MEDIUM">Medium</option>
+                  <option value="HARD">Hard</option>
+                  <option value="EXPERT">Expert</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="editPartOfSpeech">Part of Speech</label>
+              <input
+                type="text"
+                id="editPartOfSpeech"
+                name="partOfSpeech"
+                placeholder="noun, verb, adjective..."
+              />
+            </div>
+            <div class="form-group">
+              <label for="editIpa">IPA Pronunciation</label>
+              <input type="text" id="editIpa" name="ipa" placeholder="/pronunciation/" />
+            </div>
+            <div class="form-group">
+              <label for="editDefinitions">Definitions (one per line)</label>
+              <textarea id="editDefinitions" name="definitions" rows="3"></textarea>
+            </div>
+            <div class="form-group">
+              <label for="editExamples">Examples (one per line)</label>
+              <textarea id="editExamples" name="examples" rows="3"></textarea>
+            </div>
+            <div class="form-group">
+              <label for="editVocabTags">Tags (optional)</label>
+              <select id="editVocabTags" name="tags" multiple style="height: 100px">
+                <!-- Tags will be loaded dynamically -->
+              </select>
+              <small style="color: var(--text-secondary); margin-top: 0.25rem; display: block"
+                >Hold Ctrl/Cmd to select multiple tags</small
+              >
+            </div>
+            <div class="form-group">
+              <label for="editNotes">Notes</label>
+              <textarea id="editNotes" name="notes" rows="2"></textarea>
+            </div>
+          </form>
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-outline" onclick="VocaPro.Modal.close('editVocabModal')">
+            Cancel
+          </button>
+          <button class="btn btn-primary" id="updateVocabBtn">Update</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Import Modal -->
+    <div class="modal-overlay" id="importModal">
+      <div class="modal">
+        <div class="modal-header">
+          <h2 class="modal-title">Import Vocabulary</h2>
+          <button class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p style="color: var(--text-secondary); margin-bottom: var(--spacing-lg)">
+            Upload a CSV or JSON file to import multiple vocabularies at once.
+          </p>
+
+          <div class="drop-zone" id="dropZone">
+            <div class="drop-zone-icon">📁</div>
+            <div class="drop-zone-text">Drag & drop file here</div>
+            <div class="drop-zone-hint">or click to browse (CSV or JSON)</div>
+          </div>
+          <input type="file" id="fileInput" accept=".csv,.json" style="display: none" />
+
+          <div id="progressContainer" style="margin-top: var(--spacing-lg); display: none">
+            <div class="progress">
+              <div class="progress-bar" id="progressBar"></div>
+            </div>
+            <p
+              style="
+                text-align: center;
+                color: var(--text-secondary);
+                margin-top: var(--spacing-sm);
+              "
+            >
+              Importing vocabularies...
+            </p>
+          </div>
+
+          <div
+            style="
+              margin-top: var(--spacing-lg);
+              padding: var(--spacing-md);
+              background: var(--surface-glass);
+              border-radius: var(--radius-md);
+            "
+          >
+            <h4 style="margin-bottom: var(--spacing-sm)">CSV Format Example:</h4>
+            <pre style="font-size: 0.875rem; color: var(--text-secondary); overflow-x: auto">
+word,language,ipa,definitions,difficulty
+hello,en,/həˈloʊ/,A greeting,EASY
+world,en,/wɜːrld/,The earth,MEDIUM</pre
+            >
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-outline" onclick="VocaPro.Modal.close('importModal')">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script src="/js/ui.js"></script>
+    <script src="/js/vocabManager.js"></script>
+  </body>
+</html>

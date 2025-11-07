@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Review - VocaPro</title>
+    <link rel="stylesheet" href="/css/app.css" />
+    <style>
+      .review-layout {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        background: linear-gradient(
+          135deg,
+          rgba(102, 126, 234, 0.1) 0%,
+          rgba(118, 75, 162, 0.1) 100%
+        );
+      }
+
+      .navbar {
+        background: var(--surface-glass);
+        backdrop-filter: var(--backdrop-blur);
+        border-bottom: 1px solid var(--border-color);
+        padding: var(--spacing-lg) var(--spacing-xl);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .navbar-brand {
+        font-size: 1.5rem;
+        font-weight: var(--font-weight-bold);
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .navbar-menu {
+        display: flex;
+        gap: var(--spacing-md);
+        align-items: center;
+      }
+
+      .nav-link {
+        color: var(--text-secondary);
+        text-decoration: none;
+        padding: 0.5rem 1rem;
+        border-radius: var(--radius-md);
+        transition: all var(--transition-fast);
+      }
+
+      .nav-link:hover {
+        color: var(--text-primary);
+        background: var(--surface-glass);
+      }
+
+      .review-container {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: var(--spacing-xl);
+      }
+
+      .review-card {
+        max-width: 700px;
+        width: 100%;
+      }
+
+      .card-front,
+      .card-back {
+        min-height: 400px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: var(--spacing-2xl);
+        text-align: center;
+      }
+
+      .word-display {
+        font-size: 3rem;
+        font-weight: var(--font-weight-bold);
+        margin-bottom: var(--spacing-lg);
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .ipa-display {
+        font-size: 1.25rem;
+        color: var(--text-secondary);
+        margin-bottom: var(--spacing-md);
+        font-style: italic;
+      }
+
+      .definitions-list {
+        list-style: none;
+        text-align: left;
+        width: 100%;
+        margin-bottom: var(--spacing-lg);
+      }
+
+      .definitions-list li {
+        padding: var(--spacing-md);
+        margin-bottom: var(--spacing-sm);
+        background: var(--surface-glass);
+        border-radius: var(--radius-md);
+        border-left: 3px solid #667eea;
+      }
+
+      .examples-list {
+        list-style: none;
+        text-align: left;
+        width: 100%;
+        margin-top: var(--spacing-lg);
+      }
+
+      .examples-list li {
+        padding: var(--spacing-sm) var(--spacing-md);
+        color: var(--text-secondary);
+        font-style: italic;
+        border-left: 2px solid var(--border-color);
+        margin-bottom: var(--spacing-sm);
+      }
+
+      .quality-buttons {
+        display: flex;
+        gap: var(--spacing-md);
+        flex-wrap: wrap;
+        justify-content: center;
+        margin-top: var(--spacing-xl);
+      }
+
+      .quality-btn {
+        min-width: 80px;
+        padding: 0.75rem 1rem;
+        font-size: 0.875rem;
+        text-align: center;
+      }
+
+      .stats-bar {
+        display: flex;
+        gap: var(--spacing-lg);
+        justify-content: center;
+        padding: var(--spacing-lg);
+        background: var(--surface-glass);
+        border-radius: var(--radius-lg);
+        margin-bottom: var(--spacing-xl);
+      }
+
+      .stat-item {
+        text-align: center;
+      }
+
+      .stat-value {
+        font-size: 1.5rem;
+        font-weight: var(--font-weight-bold);
+        color: var(--text-primary);
+      }
+
+      .stat-label {
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="review-layout">
+      <!-- Navbar -->
+      <nav class="navbar">
+        <div class="navbar-brand">VocaPro</div>
+        <div class="navbar-menu">
+          <a href="/dashboard" class="nav-link">Dashboard</a>
+          <a href="/vocab" class="nav-link">Vocabulary</a>
+          <a
+            href="/review"
+            class="nav-link"
+            style="color: var(--text-primary); background: var(--surface-glass)"
+            >Review</a
+          >
+          <button class="btn btn-small" onclick="VocaPro.Theme.toggle()">🌓 Theme</button>
+          <button class="btn btn-small btn-outline" id="logoutBtn">Logout</button>
+        </div>
+      </nav>
+
+      <!-- Review Container -->
+      <div class="review-container">
+        <div style="max-width: 700px; width: 100%">
+          <!-- Stats Bar -->
+          <div class="stats-bar">
+            <div class="stat-item">
+              <div class="stat-value" id="dueCount">0</div>
+              <div class="stat-label">Due</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value" id="reviewedCount">0</div>
+              <div class="stat-label">Reviewed Today</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value" id="streakCount">0</div>
+              <div class="stat-label">Current Streak</div>
+            </div>
+          </div>
+
+          <!-- Review Card -->
+          <div class="glass-card review-card" id="reviewCard" style="display: none">
+            <div id="cardFront" class="card-front">
+              <div class="word-display" id="wordDisplay"></div>
+              <div class="ipa-display" id="ipaDisplay"></div>
+              <div style="margin-top: auto">
+                <button class="btn btn-primary btn-large" id="showAnswerBtn">Show Answer</button>
+              </div>
+            </div>
+
+            <div id="cardBack" class="card-back" style="display: none">
+              <div class="word-display" id="wordDisplayBack"></div>
+              <div class="ipa-display" id="ipaDisplayBack"></div>
+
+              <ul class="definitions-list" id="definitionsList"></ul>
+
+              <ul class="examples-list" id="examplesList"></ul>
+
+              <div class="quality-buttons">
+                <button class="quality-btn btn btn-danger" onclick="submitQuality(0)">
+                  ❌<br />
+                  <small>Forgot</small>
+                </button>
+                <button class="quality-btn btn btn-outline" onclick="submitQuality(2)">
+                  😕<br />
+                  <small>Hard</small>
+                </button>
+                <button class="quality-btn btn btn-accent" onclick="submitQuality(3)">
+                  😊<br />
+                  <small>Good</small>
+                </button>
+                <button class="quality-btn btn btn-primary" onclick="submitQuality(4)">
+                  😄<br />
+                  <small>Easy</small>
+                </button>
+                <button class="quality-btn btn btn-success" onclick="submitQuality(5)">
+                  🎉<br />
+                  <small>Perfect</small>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- No Reviews Message -->
+          <div
+            class="glass-card"
+            id="noReviewsCard"
+            style="text-align: center; padding: var(--spacing-2xl)"
+          >
+            <div style="font-size: 4rem; margin-bottom: var(--spacing-lg)">🎉</div>
+            <h2 style="margin-bottom: var(--spacing-md)">All caught up!</h2>
+            <p style="color: var(--text-secondary); margin-bottom: var(--spacing-xl)">
+              No reviews due right now. Come back later or add more vocabulary.
+            </p>
+            <div class="flex gap-md justify-between">
+              <a href="/vocab" class="btn btn-primary">Add Vocabulary</a>
+              <a href="/dashboard" class="btn btn-outline">Back to Dashboard</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="/js/ui.js"></script>
+    <script>
+      let currentReview = null;
+      let reviewedToday = 0;
+      let currentStreak = 0;
+
+      // =====================================================
+      // Load Stats
+      // =====================================================
+
+      async function loadStats() {
+        try {
+          const stats = await VocaPro.API.get('/api/v1/review/stats');
+          document.getElementById('dueCount').textContent = stats.dueCount;
+          document.getElementById('reviewedCount').textContent = stats.reviewedToday;
+          document.getElementById('streakCount').textContent = stats.longestStreak;
+          reviewedToday = stats.reviewedToday;
+          currentStreak = stats.longestStreak;
+        } catch (error) {
+          console.error('Failed to load stats', error);
+        }
+      }
+
+      // =====================================================
+      // Load Next Review
+      // =====================================================
+
+      async function loadNextReview() {
+        try {
+          const data = await VocaPro.API.get('/api/v1/review/next');
+
+          if (!data.review) {
+            // No reviews due
+            document.getElementById('reviewCard').style.display = 'none';
+            document.getElementById('noReviewsCard').style.display = 'block';
+            return;
+          }
+
+          currentReview = data.review;
+          const vocab = data.vocabulary;
+
+          // Show review card
+          document.getElementById('reviewCard').style.display = 'block';
+          document.getElementById('noReviewsCard').style.display = 'none';
+
+          // Show front of card
+          document.getElementById('cardFront').style.display = 'flex';
+          document.getElementById('cardBack').style.display = 'none';
+
+          // Set front content
+          document.getElementById('wordDisplay').textContent = vocab.word;
+          document.getElementById('ipaDisplay').textContent = vocab.ipa || '';
+
+          // Set back content
+          document.getElementById('wordDisplayBack').textContent = vocab.word;
+          document.getElementById('ipaDisplayBack').textContent = vocab.ipa || '';
+
+          const definitionsList = document.getElementById('definitionsList');
+          definitionsList.innerHTML = vocab.definitions.map((def) => `<li>${def}</li>`).join('');
+
+          const examplesList = document.getElementById('examplesList');
+          if (vocab.examples && vocab.examples.length > 0) {
+            examplesList.innerHTML = vocab.examples.map((ex) => `<li>${ex}</li>`).join('');
+            examplesList.style.display = 'block';
+          } else {
+            examplesList.style.display = 'none';
+          }
+        } catch (error) {
+          VocaPro.Toasts.show('Error', 'Failed to load review', 'error');
+        }
+      }
+
+      // =====================================================
+      // Show Answer
+      // =====================================================
+
+      document.getElementById('showAnswerBtn').addEventListener('click', () => {
+        document.getElementById('cardFront').style.display = 'none';
+        document.getElementById('cardBack').style.display = 'flex';
+      });
+
+      // =====================================================
+      // Submit Quality
+      // =====================================================
+
+      async function submitQuality(quality) {
+        if (!currentReview) return;
+
+        try {
+          await VocaPro.API.post(`/api/v1/review/${currentReview.id}`, { quality });
+
+          // Update stats
+          reviewedToday++;
+          document.getElementById('reviewedCount').textContent = reviewedToday;
+
+          if (quality >= 3) {
+            currentStreak++;
+            document.getElementById('streakCount').textContent = currentStreak;
+          } else {
+            currentStreak = 0;
+            document.getElementById('streakCount').textContent = currentStreak;
+          }
+
+          // Update due count
+          const dueCount = parseInt(document.getElementById('dueCount').textContent);
+          document.getElementById('dueCount').textContent = Math.max(0, dueCount - 1);
+
+          // Show toast
+          const messages = {
+            0: 'Keep trying! 💪',
+            2: 'Getting there! 📚',
+            3: 'Good job! 👍',
+            4: 'Great! 🌟',
+            5: 'Perfect! 🎉',
+          };
+          VocaPro.Toasts.show(
+            'Review Submitted',
+            messages[quality] || 'Submitted',
+            quality >= 3 ? 'success' : 'warning'
+          );
+
+          // Load next review
+          setTimeout(loadNextReview, 500);
+        } catch (error) {
+          VocaPro.Toasts.show('Error', 'Failed to submit review', 'error');
+        }
+      }
+
+      // =====================================================
+      // Keyboard Shortcuts
+      // =====================================================
+
+      document.addEventListener('keydown', (e) => {
+        // Space: Show answer
+        if (e.code === 'Space' && document.getElementById('cardFront').style.display !== 'none') {
+          e.preventDefault();
+          document.getElementById('showAnswerBtn').click();
+        }
+
+        // Number keys: Quality rating
+        if (document.getElementById('cardBack').style.display !== 'none') {
+          const qualityMap = { 1: 0, 2: 2, 3: 3, 4: 4, 5: 5 };
+          if (qualityMap[e.key] !== undefined) {
+            e.preventDefault();
+            submitQuality(qualityMap[e.key]);
+          }
+        }
+      });
+
+      // =====================================================
+      // Logout
+      // =====================================================
+
+      document.getElementById('logoutBtn').addEventListener('click', async () => {
+        try {
+          await VocaPro.API.post('/auth/logout');
+          window.location.href = '/';
+        } catch (error) {
+          // Error handled
+        }
+      });
+
+      // =====================================================
+      // Initialize
+      // =====================================================
+
+      loadStats();
+      loadNextReview();
+    </script>
+  </body>
+</html>

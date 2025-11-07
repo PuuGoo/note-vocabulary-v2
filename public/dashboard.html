@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard - VocaPro</title>
+    <link rel="stylesheet" href="/css/app.css" />
+    <style>
+      .dashboard-layout {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .navbar {
+        background: var(--surface-glass);
+        backdrop-filter: var(--backdrop-blur);
+        border-bottom: 1px solid var(--border-color);
+        padding: var(--spacing-lg) var(--spacing-xl);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+      }
+
+      .navbar-brand {
+        font-size: 1.5rem;
+        font-weight: var(--font-weight-bold);
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .navbar-menu {
+        display: flex;
+        gap: var(--spacing-md);
+        align-items: center;
+      }
+
+      .nav-link {
+        color: var(--text-secondary);
+        text-decoration: none;
+        padding: 0.5rem 1rem;
+        border-radius: var(--radius-md);
+        transition: all var(--transition-fast);
+      }
+
+      .nav-link:hover {
+        color: var(--text-primary);
+        background: var(--surface-glass);
+      }
+
+      .container {
+        max-width: 1200px;
+        width: 100%;
+        margin: 0 auto;
+        padding: var(--spacing-xl);
+      }
+
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: var(--spacing-lg);
+        margin-bottom: var(--spacing-xl);
+      }
+
+      .stat-card {
+        position: relative;
+        overflow: hidden;
+      }
+
+      .stat-card h3 {
+        font-size: 0.875rem;
+        font-weight: var(--font-weight-medium);
+        color: rgba(255, 255, 255, 0.9);
+        margin-bottom: var(--spacing-sm);
+      }
+
+      .stat-card .stat-value {
+        font-size: 2.5rem;
+        font-weight: var(--font-weight-bold);
+        color: white;
+      }
+
+      .chart-container {
+        margin-bottom: var(--spacing-xl);
+      }
+
+      .activity-list {
+        list-style: none;
+      }
+
+      .activity-item {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-md);
+        padding: var(--spacing-md);
+        border-bottom: 1px solid var(--border-color);
+      }
+
+      .activity-item:last-child {
+        border-bottom: none;
+      }
+
+      .activity-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: var(--radius-round);
+        background: var(--accent-gradient);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: var(--font-weight-bold);
+      }
+
+      .activity-content {
+        flex: 1;
+      }
+
+      .activity-title {
+        font-weight: var(--font-weight-medium);
+        color: var(--text-primary);
+      }
+
+      .activity-time {
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="dashboard-layout">
+      <!-- Navbar -->
+      <nav class="navbar">
+        <div class="navbar-brand">VocaPro</div>
+        <div class="navbar-menu">
+          <a href="/dashboard" class="nav-link">Dashboard</a>
+          <a href="/vocab" class="nav-link">Vocabulary</a>
+          <a href="/review" class="nav-link">Review</a>
+          <button class="btn btn-small" onclick="VocaPro.Theme.toggle()">🌓 Theme</button>
+          <button class="btn btn-small btn-outline" id="logoutBtn">Logout</button>
+        </div>
+      </nav>
+
+      <!-- Main Content -->
+      <div class="container">
+        <div class="flex justify-between items-center mb-xl">
+          <div>
+            <h1 style="font-size: 2rem; margin-bottom: 0.5rem">
+              Welcome back, <span id="userName">User</span>!
+            </h1>
+            <p id="clock" style="color: var(--text-secondary)"></p>
+          </div>
+          <div class="flex gap-md">
+            <a href="/vocab" class="btn btn-primary">Add Vocabulary</a>
+            <a href="/review" class="btn btn-accent">Start Review</a>
+          </div>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+          <div class="glass-card stat-card gradient">
+            <h3>Total Vocabulary</h3>
+            <div class="stat-value" id="totalVocab">0</div>
+          </div>
+          <div class="glass-card stat-card gradient-accent">
+            <h3>Reviews Due</h3>
+            <div class="stat-value" id="reviewsDue">0</div>
+          </div>
+          <div class="glass-card stat-card gradient-secondary">
+            <h3>Reviewed Today</h3>
+            <div class="stat-value" id="reviewedToday">0</div>
+          </div>
+          <div class="glass-card stat-card" style="background: var(--success-gradient)">
+            <h3>Total Tags</h3>
+            <div class="stat-value" id="totalTags">0</div>
+          </div>
+        </div>
+
+        <!-- Charts & Activity -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-xl)">
+          <!-- Difficulty Breakdown -->
+          <div class="glass-card">
+            <h2 style="margin-bottom: var(--spacing-lg)">Difficulty Breakdown</h2>
+            <div id="difficultyChart">
+              <div style="text-align: center; color: var(--text-secondary); padding: 2rem">
+                Loading...
+              </div>
+            </div>
+          </div>
+
+          <!-- Language Breakdown -->
+          <div class="glass-card">
+            <h2 style="margin-bottom: var(--spacing-lg)">Language Breakdown</h2>
+            <div id="languageChart">
+              <div style="text-align: center; color: var(--text-secondary); padding: 2rem">
+                Loading...
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="glass-card" style="margin-top: var(--spacing-xl)">
+          <h2 style="margin-bottom: var(--spacing-lg)">Recent Activity</h2>
+          <ul class="activity-list" id="activityList">
+            <li style="text-align: center; color: var(--text-secondary); padding: 2rem">
+              Loading...
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <script src="/js/ui.js"></script>
+    <script>
+      let currentUser = null;
+
+      // Check authentication
+      async function checkAuth() {
+        try {
+          const { user } = await VocaPro.API.get('/auth/me');
+          currentUser = user;
+          document.getElementById('userName').textContent = user.name || user.email.split('@')[0];
+        } catch (error) {
+          window.location.href = '/';
+        }
+      }
+
+      // Load dashboard data
+      async function loadDashboard() {
+        try {
+          const stats = await VocaPro.API.get('/api/v1/stats/dashboard');
+
+          document.getElementById('totalVocab').textContent = stats.totalVocabulary;
+          document.getElementById('reviewsDue').textContent = stats.reviewsDue;
+          document.getElementById('reviewedToday').textContent = stats.reviewedToday;
+          document.getElementById('totalTags').textContent = stats.totalTags;
+
+          // Difficulty breakdown
+          const difficultyChart = document.getElementById('difficultyChart');
+          if (stats.difficultyBreakdown.length > 0) {
+            difficultyChart.innerHTML = stats.difficultyBreakdown
+              .map((item) => {
+                const colors = {
+                  EASY: '#38ef7d',
+                  MEDIUM: '#21d4fd',
+                  HARD: '#f2994a',
+                  EXPERT: '#eb3349',
+                };
+                return `
+                  <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem">
+                    <div style="width: 40px; height: 40px; border-radius: 50%; background: ${
+                      colors[item.difficulty]
+                    }; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold">
+                      ${item.count}
+                    </div>
+                    <div style="flex: 1">
+                      <div style="font-weight: 500">${item.difficulty}</div>
+                      <div style="height: 8px; background: var(--surface-glass); border-radius: 999px; overflow: hidden; margin-top: 0.25rem">
+                        <div style="height: 100%; width: ${
+                          (item.count / stats.totalVocabulary) * 100
+                        }%; background: ${colors[item.difficulty]}"></div>
+                      </div>
+                    </div>
+                  </div>
+                `;
+              })
+              .join('');
+          } else {
+            difficultyChart.innerHTML =
+              '<div style="text-align: center; color: var(--text-secondary); padding: 2rem">No data yet</div>';
+          }
+
+          // Language breakdown
+          const languageChart = document.getElementById('languageChart');
+          if (stats.languageBreakdown.length > 0) {
+            languageChart.innerHTML = stats.languageBreakdown
+              .map((item) => {
+                const colors = ['#667eea', '#f093fb', '#21d4fd', '#38ef7d'];
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                return `
+                  <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem">
+                    <div style="width: 40px; height: 40px; border-radius: 50%; background: ${color}; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; text-transform: uppercase">
+                      ${item.language}
+                    </div>
+                    <div style="flex: 1">
+                      <div style="font-weight: 500">${
+                        item.language === 'en'
+                          ? 'English'
+                          : item.language === 'vi'
+                          ? 'Vietnamese'
+                          : item.language
+                      }</div>
+                      <div style="height: 8px; background: var(--surface-glass); border-radius: 999px; overflow: hidden; margin-top: 0.25rem">
+                        <div style="height: 100%; width: ${
+                          (item.count / stats.totalVocabulary) * 100
+                        }%; background: ${color}"></div>
+                      </div>
+                    </div>
+                  </div>
+                `;
+              })
+              .join('');
+          } else {
+            languageChart.innerHTML =
+              '<div style="text-align: center; color: var(--text-secondary); padding: 2rem">No data yet</div>';
+          }
+
+          // Recent activity
+          const activityList = document.getElementById('activityList');
+          if (stats.recentActivity.length > 0) {
+            activityList.innerHTML = stats.recentActivity
+              .map((item) => {
+                const timeAgo = new Date(item.createdAt).toLocaleDateString();
+                return `
+                  <li class="activity-item">
+                    <div class="activity-icon">${item.word.charAt(0).toUpperCase()}</div>
+                    <div class="activity-content">
+                      <div class="activity-title">${item.word}</div>
+                      <div class="activity-time">Added on ${timeAgo} • ${item.language.toUpperCase()}</div>
+                    </div>
+                    <span class="badge gradient">${item.language.toUpperCase()}</span>
+                  </li>
+                `;
+              })
+              .join('');
+          } else {
+            activityList.innerHTML =
+              '<li style="text-align: center; color: var(--text-secondary); padding: 2rem">No activity yet</li>';
+          }
+        } catch (error) {
+          console.error('Failed to load dashboard', error);
+        }
+      }
+
+      // Logout handler
+      document.getElementById('logoutBtn').addEventListener('click', async () => {
+        try {
+          await VocaPro.API.post('/auth/logout');
+          VocaPro.Toasts.show('Success', 'Logged out successfully', 'success');
+          setTimeout(() => {
+            window.location.href = '/';
+          }, 1000);
+        } catch (error) {
+          // Error handled by API helper
+        }
+      });
+
+      // Initialize
+      checkAuth().then(() => {
+        loadDashboard();
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,73 @@
+# =====================================================
+# Docker Compose Configuration
+# =====================================================
+
+version: '3.8'
+
+services:
+  # =====================================================
+  # VocaPro Application
+  # =====================================================
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: vocapro-app
+    restart: unless-stopped
+    ports:
+      - '3000:3000'
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DATABASE_URL=${DATABASE_URL}
+      - SESSION_SECRET=${SESSION_SECRET}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - BASE_URL=${BASE_URL}
+    volumes:
+      - ./uploads:/app/uploads
+      - ./logs:/app/logs
+    depends_on:
+      - redis
+    networks:
+      - vocapro-network
+
+  # =====================================================
+  # Redis (Session Storage)
+  # =====================================================
+  redis:
+    image: redis:7-alpine
+    container_name: vocapro-redis
+    restart: unless-stopped
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis-data:/data
+    networks:
+      - vocapro-network
+
+  # =====================================================
+  # Nginx (Reverse Proxy - Optional)
+  # =====================================================
+  nginx:
+    image: nginx:alpine
+    container_name: vocapro-nginx
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - app
+    networks:
+      - vocapro-network
+
+volumes:
+  redis-data:
+    driver: local
+
+networks:
+  vocapro-network:
+    driver: bridge
