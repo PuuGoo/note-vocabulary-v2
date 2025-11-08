@@ -47,10 +47,21 @@ router.post('/register', validate(registerSchema), async (req, res) => {
 
     const passwordHash = await bcrypt.hash(password, 10);
 
-    console.log('Creating user without manual ID');
+    // Generate UUID manually (SQL Server doesn't auto-generate)
+    const { randomUUID } = require('crypto');
+    const userId = randomUUID();
+    
+    console.log('Creating user with data:', {
+      id: userId,
+      email: email.toLowerCase(),
+      name: name || 'User',
+      role: 'USER',
+      emailVerified: false
+    });
 
     const user = await prisma.user.create({
       data: {
+        id: userId,
         email: email.toLowerCase(),
         passwordHash,
         name: name || 'User',
