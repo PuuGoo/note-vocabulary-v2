@@ -33,9 +33,13 @@ router.post('/register', validate(registerSchema), async (req, res) => {
   const { email, password, name } = req.body;
 
   try {
+    console.log('Registering email:', email.toLowerCase());
+    
     const existingUser = await prisma.user.findUnique({
       where: { email: email.toLowerCase() },
     });
+
+    console.log('Existing user found:', existingUser);
 
     if (existingUser) {
       return res.status(400).json({ error: 'Email already registered' });
@@ -43,11 +47,13 @@ router.post('/register', validate(registerSchema), async (req, res) => {
 
     const passwordHash = await bcrypt.hash(password, 10);
 
+    console.log('Creating user without manual ID');
+
     const user = await prisma.user.create({
       data: {
         email: email.toLowerCase(),
         passwordHash,
-        name,
+        name: name || 'User',
         role: 'USER',
         emailVerified: false,
       },
@@ -61,12 +67,20 @@ router.post('/register', validate(registerSchema), async (req, res) => {
 
     req.login(user, (err) => {
       if (err) {
+        console.error('Login after registration failed:', err);
         return res.status(500).json({ error: 'Registration successful but login failed' });
       }
       res.status(201).json({ message: 'Registration successful', user });
     });
   } catch (error) {
-    res.status(500).json({ error: 'Registration failed' });
+    console.error('Registration error:', error);
+    
+    // Handle unique constraint violation
+    if (error.code === 'P2002' || error.message.includes('Unique constraint')) {
+      return res.status(400).json({ error: 'Email already registered' });
+    }
+    
+    res.status(500).json({ error: 'Registration failed', details: error.message });
   }
 });
 
