@@ -32,5 +32,4 @@ uploads/
 
 # Temporary
 *.tmp
-*.temp
-"@ | Out-File -FilePath .gitignore -Encoding UTF8 -Force
+*.temp"@ | Out-File -FilePath .gitignore -Encoding UTF8 -Force
