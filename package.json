@@ -16,7 +16,13 @@
     "test:watch": "jest --watch",
     "lint": "eslint src/**/*.js",
     "docker:build": "docker build -t vocapro .",
-    "docker:up": "docker-compose up -d"
+    "docker:up": "docker-compose up -d",
+    "pm2:start": "pm2 start ecosystem.config.js --env production",
+    "pm2:stop": "pm2 stop vocapro",
+    "pm2:restart": "pm2 restart vocapro",
+    "pm2:logs": "pm2 logs vocapro",
+    "pm2:monit": "pm2 monit",
+    "deploy": "npm install && npx prisma generate && npx prisma db push && pm2 restart vocapro"
   },
   "keywords": [
     "vocabulary",

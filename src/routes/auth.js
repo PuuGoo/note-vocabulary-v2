@@ -21,9 +21,7 @@ const { validate, registerSchema, loginSchema } = require('../utils/validation')
  *           schema:
  *             type: object
  *             properties:
- *               email: { type: string }
- *               password: { type: string }
- *               name: { type: string }
+ *
  *     responses:
  *       201:
  *         description: User registered successfully
@@ -34,7 +32,7 @@ router.post('/register', validate(registerSchema), async (req, res) => {
 
   try {
     console.log('Registering email:', email.toLowerCase());
-    
+
     const existingUser = await prisma.user.findUnique({
       where: { email: email.toLowerCase() },
     });
@@ -50,13 +48,13 @@ router.post('/register', validate(registerSchema), async (req, res) => {
     // Generate UUID manually (SQL Server doesn't auto-generate)
     const { randomUUID } = require('crypto');
     const userId = randomUUID();
-    
+
     console.log('Creating user with data:', {
       id: userId,
       email: email.toLowerCase(),
       name: name || 'User',
       role: 'USER',
-      emailVerified: false
+      emailVerified: false,
     });
 
     const user = await prisma.user.create({
@@ -85,12 +83,12 @@ router.post('/register', validate(registerSchema), async (req, res) => {
     });
   } catch (error) {
     console.error('Registration error:', error);
-    
+
     // Handle unique constraint violation
     if (error.code === 'P2002' || error.message.includes('Unique constraint')) {
       return res.status(400).json({ error: 'Email already registered' });
     }
-    
+
     res.status(500).json({ error: 'Registration failed', details: error.message });
   }
 });

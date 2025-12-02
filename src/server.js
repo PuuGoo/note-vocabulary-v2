@@ -142,10 +142,11 @@ app.use((err, req, res, next) => {
 // =====================================================
 
 const PORT = process.env.PORT || 3000;
-const HOST = process.env.HOST || 'localhost';
-// Start server (skip in serverless environment like Vercel)
-if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
-  app.listen(PORT, () => {
+const HOST = process.env.HOST || '0.0.0.0';
+
+// Start server (skip only in Vercel serverless environment)
+if (!process.env.VERCEL) {
+  app.listen(PORT, HOST, () => {
     logger.info(`🚀 VocaPro server running at http://${HOST}:${PORT}`);
     logger.info(`📚 API Documentation: http://${HOST}:${PORT}/api-docs`);
     logger.info(`🔐 Environment: ${process.env.NODE_ENV || 'development'}`);
