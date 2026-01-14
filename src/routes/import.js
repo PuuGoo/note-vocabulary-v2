@@ -33,7 +33,9 @@ router.post('/', ensureAuthenticated, upload.single('file'), async (req, res) =>
       // Parse CSV
       await new Promise((resolve, reject) => {
         fs.createReadStream(req.file.path)
-          .pipe(csv())
+          .pipe(csv({
+      mapHeaders: ({ header }) => header.replace(/^\uFEFF/, '').trim()
+    }))
           .on('data', (row) => {
             // Parse definitions - handle both single definition and semicolon-separated
             let definitions = [];
